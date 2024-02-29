@@ -2,7 +2,7 @@
 
   <head>
     <meta charset="utf-8">
-    <title>Aruco teste</title>
+    <title>OpenCV javascript test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!---script type="text/javascript" src="libs/polyfill.js"></script---> 
     <script type="text/javascript" src="./lib/cv.js"></script> 
@@ -63,7 +63,10 @@
   
           var markers = detector.detect(imageData);
           drawCorners(markers);
-          drawId(markers);
+          //drawSize(markers);
+          //drawId(markers);
+          calculateAndDrawCm(markers, 100); // 100 pixels = 1 cm
+      
         }
       }
   
@@ -106,7 +109,8 @@
           context.strokeRect(corners[0].x - 2, corners[0].y - 2, 4, 4);
         }
       }
-  
+      
+      /*
       function drawId(markers){
         var corners, corner, x, y, i, j;
         
@@ -129,6 +133,45 @@
           context.strokeText(markers[i].id, x, y)
         }
       }
+      */
+
+      // Função para calcular largura e altura do marcador ArUco em centímetros
+      function calculateCm(corners, pixelCmRatio) {
+        const width = Math.sqrt((corners[1].x - corners[0].x)**2 + (corners[1].y - corners[0].y)**2) / pixelCmRatio;
+        const height = Math.sqrt((corners[2].x - corners[1].x)**2 + (corners[2].y - corners[1].y)**2) / pixelCmRatio;
+        return { width, height };
+      }
+
+      // Função para desenhar cantos, medir largura/altura e exibir em centímetros
+      function calculateAndDrawCm(markers, pixelCmRatio) {
+        for (let i = 0; i < markers.length; ++i) {
+            const corners = markers[i].corners;
+
+            context.lineWidth = 3;
+
+            context.strokeStyle = "red";
+            context.beginPath();
+
+            for (let j = 0; j < corners.length; ++j) {
+                const corner = corners[j];
+                context.moveTo(corner.x, corner.y);
+                const nextCorner = corners[(j + 1) % corners.length];
+                context.lineTo(nextCorner.x, nextCorner.y);
+            }
+
+            context.stroke();
+            context.closePath();
+
+            context.strokeStyle = "green";
+            context.strokeRect(corners[0].x - 2, corners[0].y - 2, 4, 4);
+
+            // Calcular e exibir largura e altura em centímetros
+            const { width, height } = calculateCm(corners, pixelCmRatio);
+            console.log(`Marcador ${i + 1} - Largura: ${width.toFixed(2)} cm, Altura: ${height.toFixed(2)} cm`);
+        }
+      }
+
+    
   
       window.onload = onLoad;
     </script>
@@ -136,7 +179,7 @@
 
   <body>
     <center>
-    <div style="margin: 10px;"><strong>-= Detector de Aruco 5X5 =-</strong></div>
+    <div style="margin: 10px;"><strong>-= Augmented Reality Marker Detector =-</strong></div>
       <video id="video" width="640" height="480" autoplay="true" style="display:none;"></video>
       <canvas id="canvas" width="640" height="480"></canvas>
     </center>
